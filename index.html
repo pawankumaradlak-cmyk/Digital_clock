@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Digital Stopwatch Using Logic Gates</title>
+<style>
+:root{--bg:#03060f;--c1:#00e5ff;--c2:#2979ff;--tx:#e8f1ff;--mu:#9bb0cc;--gl:rgba(12,26,52,.62);--bd:rgba(0,229,255,.22);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-behavior:smooth;scroll-padding-top:70px;height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:radial-gradient(ellipse at 70% 0,#0a1c3d,var(--bg) 60%);color:var(--tx);font:16px/1.6 "Segoe UI",system-ui,-apple-system,sans-serif;overflow-x:hidden}
+body.nogl{background:radial-gradient(ellipse at 70% 0,#0a1c3d,var(--bg) 60%),repeating-linear-gradient(0deg,transparent 0 39px,rgba(0,229,255,.07) 39px 40px),repeating-linear-gradient(90deg,transparent 0 39px,rgba(0,229,255,.07) 39px 40px)}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main,header,footer{position:relative;z-index:1}
+h1,h2,h3{font-family:"Trebuchet MS","Segoe UI",sans-serif;line-height:1.1;margin:0 0 .5em}
+h2{font-size:clamp(1.8rem,4vw,2.8rem);letter-spacing:-.01em}
+p{max-width:68ch;color:var(--mu);margin:0 0 1em}
+a{color:inherit}
+nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:20;display:flex;align-items:center;gap:18px;padding:12px 5vw;background:rgba(3,6,15,.72);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)}
+nav b{color:var(--c1);margin-right:auto;font-size:.95rem}
+nav a{text-decoration:none;font-size:.85rem;color:var(--mu)}nav a:hover{color:var(--c1)}
+#mb{display:none;background:none;border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:6px 10px;font-size:1rem}
+@media(max-width:860px){#mb{display:block}nav .ls{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(3,6,15,.96);padding:12px 5vw;flex-direction:column;gap:12px}nav.open .ls{display:flex}}
+nav .ls{display:flex;gap:18px}
+section{padding:96px 5vw;max-width:1180px;margin:0 auto}
+#hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;max-width:none;padding-top:110px}
+#hero>*{max-width:560px}
+#hero h1{font-size:clamp(2.6rem,8vw,5.6rem);font-weight:800;letter-spacing:-.02em;background:linear-gradient(180deg,#fff,#7fdcff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:1.4rem;color:var(--c1);margin-bottom:.8em}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+.btn{font:inherit;cursor:pointer;border:1px solid var(--c1);background:rgba(0,229,255,.1);color:var(--tx);padding:11px 22px;border-radius:999px;text-decoration:none;transition:.2s}
+.btn:hover{background:var(--c1);color:#001018;box-shadow:0 0 22px rgba(0,229,255,.6)}
+.btn.alt{border-color:var(--c2);background:rgba(41,121,255,.15)}
+.btn:focus-visible,.mod:focus-visible,.card:focus-visible,.dgb:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.glass{background:var(--gl);border:1px solid var(--bd);border-radius:18px;padding:24px;backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.hf{display:none;margin-top:30px}.nogl .hf{display:block}
+.rv{opacity:0;transform:translateY(24px);transition:.8s}.rv.in{opacity:1;transform:none}
+/* seven segment */
+.disp{display:flex;align-items:center;justify-content:center;gap:10px;--dw:70px}
+.dg{width:var(--dw);height:calc(var(--dw)*1.66)}
+.dg polygon{fill:#0a1b2a}.dg polygon.on{fill:var(--c1);filter:drop-shadow(0 0 5px var(--c1))}
+.dg.flip{animation:fl .35s}@keyframes fl{from{opacity:.4;transform:scale(.94)}}
+.colon{display:flex;flex-direction:column;gap:calc(var(--dw)*.3)}.colon i{width:calc(var(--dw)*.12);height:calc(var(--dw)*.12);background:var(--c1);border-radius:50%;box-shadow:0 0 10px var(--c1)}
+.sw{display:grid;place-items:center;gap:20px;transform:perspective(900px) rotateX(8deg);background:linear-gradient(160deg,#1c2a42,#0a1220);border:2px solid #3a4f73;border-radius:34px;padding:34px 26px;box-shadow:0 30px 70px #000,inset 0 2px 0 #5b7399;--dw:clamp(40px,11vw,110px)}
+.sw .disp{background:#02080f;padding:20px 24px;border-radius:14px;box-shadow:inset 0 0 30px #000}
+.pill{font-size:.8rem;border:1px solid var(--bd);border-radius:99px;padding:3px 12px;color:var(--c1)}
+/* arch */
+.mods{display:flex;gap:0;align-items:stretch;flex-wrap:wrap;margin:24px 0}
+.mod{flex:1 1 130px;min-width:130px;cursor:pointer;font:inherit;color:var(--tx);background:linear-gradient(160deg,#16294a,#0a1428);border:1px solid #2b4673;border-radius:14px;padding:18px 10px;margin:6px 0;transition:.25s;transform:perspective(600px) translateZ(0)}
+.mod.on{border-color:var(--c1);box-shadow:0 0 28px rgba(0,229,255,.55);transform:perspective(600px) translateZ(26px) rotateX(-6deg)}
+.wire{flex:0 0 36px;position:relative;align-self:center;height:3px;background:#1d3358;overflow:hidden}
+.wire.flow::after{content:"";position:absolute;top:0;width:14px;height:3px;background:var(--c1);box-shadow:0 0 10px var(--c1);animation:mv .8s linear infinite}
+@keyframes mv{from{left:-14px}to{left:100%}}
+@media(max-width:700px){.wire{display:none}}
+.stages{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:20px 0 0;counter-reset:s}
+.stages li{counter-increment:s;flex:1 1 150px;padding:12px;border-radius:10px;border:1px solid var(--bd);font-size:.88rem;animation:lit 6s infinite}
+.stages li::before{content:counter(s) ". ";color:var(--c1)}
+.stages li:nth-child(2){animation-delay:1s}.stages li:nth-child(3){animation-delay:2s}.stages li:nth-child(4){animation-delay:3s}.stages li:nth-child(5){animation-delay:4s}.stages li:nth-child(6){animation-delay:5s}
+@keyframes lit{0%,16%{background:rgba(0,229,255,.2);box-shadow:0 0 16px rgba(0,229,255,.4)}20%,100%{background:transparent;box-shadow:none}}
+/* components */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin:20px 0}
+.card{cursor:pointer;text-align:center;font:inherit;color:var(--tx);background:linear-gradient(160deg,#14233f,#09111f);border:1px solid #2b4673;border-radius:16px;padding:16px 8px;transition:transform .15s,box-shadow .2s;transform-style:preserve-3d}
+.card.on,.card:hover{border-color:var(--c1);box-shadow:0 10px 36px rgba(0,229,255,.35)}
+.art{height:84px;display:grid;place-items:center;margin-bottom:8px;transform:translateZ(30px)}
+.ic{position:relative;width:110px;height:46px;background:linear-gradient(#262c36,#0c0f14);border-radius:5px;display:grid;place-items:center;font:700 .8rem monospace;color:#c8d3e3;box-shadow:0 12px 14px rgba(0,0,0,.6)}
+.ic::before,.ic::after{content:"";position:absolute;left:6px;right:6px;height:8px;background:repeating-linear-gradient(90deg,#b8c2cf 0 8px,transparent 8px 14px)}
+.ic::before{top:-7px}.ic::after{bottom:-7px}
+.res{width:90px;height:20px;border-radius:10px;background:linear-gradient(90deg,transparent 0 14%,#a33 14% 22%,transparent 22% 36%,#33a 36% 44%,transparent 44% 58%,#a60 58% 66%,transparent 66% 80%,#cb3 80% 86%,transparent 86%),#c9a97a;box-shadow:0 8px 10px #000}
+#cdet{min-height:90px}
+/* canvases/svg */
+canvas.wf{width:100%;height:auto;aspect-ratio:800/260;background:#03101f;border-radius:12px;border:1px solid var(--bd)}
+.mono{font-family:Consolas,monospace;color:var(--c1)}
+.eq{font:1.3rem Consolas,monospace;color:#fff;background:rgba(0,229,255,.1);padding:10px 16px;border-radius:10px;display:inline-block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.dgrow{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.dgb{font:700 1rem monospace;width:44px;height:44px;border-radius:10px;border:1px solid var(--bd);background:#0b1730;color:var(--tx);cursor:pointer}.dgb.on{background:var(--c1);color:#001018}
+.seg7{display:flex;gap:6px;flex-wrap:wrap;font-family:monospace}.seg7 span{padding:4px 10px;border:1px solid var(--bd);border-radius:8px}.seg7 .h{background:rgba(0,229,255,.25);border-color:var(--c1)}
+svg text{fill:var(--tx);font:12px Consolas,monospace}
+.w{stroke:#27406b;stroke-width:3;fill:none;transition:.3s}.w.hi{stroke:var(--c1);filter:drop-shadow(0 0 4px var(--c1))}.w.fl{stroke:#fff}
+.gt{fill:#10244a;stroke:var(--c2);stroke-width:2}
+.led{fill:#183;transition:.3s}.led.on{fill:#3f6;filter:drop-shadow(0 0 8px #3f6)}
+#carry{display:inline-block;padding:3px 12px;border-radius:99px;border:1px solid var(--bd);transition:.3s}#carry.on{background:var(--c1);color:#001018;box-shadow:0 0 18px var(--c1)}
+.tests{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:18px}
+.t{padding:16px;border-radius:14px;border:1px solid var(--bd);background:var(--gl);display:flex;gap:12px}
+.t .k{flex:0 0 28px;height:28px;border-radius:50%;border:2px solid #345;display:grid;place-items:center;transition:.3s}
+.t.ok{border-color:#3f6}.t.ok .k{background:#3f6;border-color:#3f6;color:#012;animation:pop .4s}.t.no{border-color:#f55}
+@keyframes pop{50%{transform:scale(1.35)}}
+.t small{color:var(--mu);display:block}
+.proto{transform:perspective(900px) rotateX(24deg) rotateZ(-3deg);transition:.4s;max-width:760px;margin:20px auto}.proto:hover{transform:none}
+.team{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+footer{border-top:1px solid var(--bd);background:rgba(2,4,10,.92);padding:50px 5vw 30px;margin-top:40px}
+footer .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:30px;max-width:1180px;margin:auto}
+footer a{display:block;color:var(--mu);text-decoration:none}footer a:hover{color:var(--c1)}
+#ld{position:fixed;inset:0;z-index:99;background:#02050c;display:grid;place-items:center;transition:opacity .6s;text-align:center}
+#ld.x{opacity:0;pointer-events:none}
+#ld path{stroke:var(--c1);stroke-width:2;fill:none;stroke-dasharray:400;animation:dr 1.4s ease-in-out infinite alternate}@keyframes dr{from{stroke-dashoffset:400}to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style></head><body>
+<div id="ld"><div><svg width="220" height="90" viewBox="0 0 220 90"><path d="M5 45H50L65 15H110L125 75H170L185 45H215"/><path d="M5 70H40L55 60M215 20H180"/></svg><div class="mono">Powering up the circuit…</div></div></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<nav id="nv"><b>⏱ Logic Gate Stopwatch</b><div class="ls"><a href="#stopwatch">Stopwatch</a><a href="#how">How it works</a><a href="#parts">Components</a><a href="#clock">Clock</a><a href="#counter">Counter</a><a href="#latch">Control logic</a><a href="#seg">Display</a><a href="#proto">Prototype</a><a href="#tests">Testing</a><a href="#team">Team</a></div><button id="mb" aria-label="Menu">☰</button></nav>
+<main>
+<section id="hero">
+<h1>DIGITAL STOPWATCH</h1><div class="sub">Designed Using Logic Gates</div>
+<p>An electronic timekeeping system developed using clock generation, digital counters, control logic, and seven-segment display technology.</p>
+<div class="btns"><a class="btn" href="#how">Explore Project</a><a class="btn alt" href="#stopwatch">View Working Model</a></div>
+<div class="hf"><div class="disp" id="hd" style="--dw:44px"></div></div>
+</section>
+
+<section id="stopwatch" class="rv"><h2>Interactive stopwatch</h2><p>This one really counts. Press Start, Stop to pause, Start again to resume, and Reset to return to 00:00. Counting rolls over from 59:59 to 00:00.</p>
+<div class="sw"><span class="pill" id="st">READY</span><div id="md"></div>
+<div class="btns"><button class="btn" id="bS">Start</button><button class="btn alt" id="bP">Stop</button><button class="btn alt" id="bR">Reset</button></div></div></section>
+
+<section id="how" class="rv"><h2>How it works</h2><p>Select a module (or let it cycle) to see what it does and how the signal passes to the next block.</p>
+<div class="mods" id="mods"></div><div class="glass" id="mdet" aria-live="polite"></div>
+<h3 style="margin-top:36px">System architecture</h3><ol class="stages"><li>Clock generation</li><li>Start/Stop control</li><li>Seconds counter</li><li>Minutes counter</li><li>BCD-to-7-segment conversion</li><li>Final MM:SS display</li></ol></section>
+
+<section id="parts" class="rv"><h2>Components</h2><p>Tap a part to read its role. Cards tilt in 3D as you move over them.</p><div class="grid" id="cg"></div><div class="glass" id="cdet" aria-live="polite"></div></section>
+
+<section id="clock" class="rv"><h2>Clock generation: 555 astable</h2>
+<div class="two"><div><p>The capacitor charges through R1 + R2 up to ⅔ Vcc, then discharges through R2 down to ⅓ Vcc. The output is high while charging and low while discharging, giving a square wave.</p>
+<div class="eq">f = 1.44 / ((R1 + 2R2) × C)</div>
+<p style="margin-top:14px">R1 = 1 kΩ, R2 = 68 kΩ, C = 10 µF gives f ≈ <span class="mono" id="fq"></span> Hz, about one pulse per second. Real parts have tolerances, so the actual rate will differ slightly.</p><p class="mono" id="wst"></p></div>
+<div><canvas class="wf" id="wf" width="800" height="260"></canvas><p style="font-size:.8rem">Top: capacitor voltage. Bottom: output. Real time, scrolling right to left.</p></div></div></section>
+
+<section id="counter" class="rv"><h2>Counter working</h2><p>Units count 0–9, tens count 0–5. When seconds reach 60 a carry pulse advances the minutes.</p>
+<div class="glass" style="--dw:52px"><div id="cd"></div>
+<div class="disp" style="gap:14px;font-size:.75rem;color:var(--mu);margin:6px 0 14px"><span>Min tens</span><span>Min units</span><span>Sec tens</span><span>Sec units</span></div>
+<div class="btns" style="justify-content:center"><button class="btn" id="c1">+1 second</button><button class="btn alt" id="c2">Jump to 00:58</button><button class="btn alt" id="c3">Jump to 59:58</button><button class="btn alt" id="c4">Auto run</button></div>
+<p style="text-align:center;margin:14px auto 0"><span id="carry">CARRY → MINUTES</span> <span id="clog" class="mono"></span></p></div></section>
+
+<section id="latch" class="rv"><h2>Start / Stop / Reset logic</h2>
+<div class="two"><div class="glass"><svg viewBox="0 0 600 260" width="100%" role="img" aria-label="Two cross-coupled NAND gates forming an SR latch">
+<path class="gt" d="M230 40H290A35 35 0 0 1 290 110H230Z"/><circle class="gt" cx="330" cy="75" r="5"/><text x="240" y="80">NAND</text>
+<path class="gt" d="M230 150H290A35 35 0 0 1 290 220H230Z"/><circle class="gt" cx="330" cy="185" r="5"/><text x="240" y="190">NAND</text>
+<path class="w" id="wS" d="M60 55H230"/><path class="w" id="wR" d="M60 205H230"/>
+<path class="w" id="wQ" d="M335 75H480"/><path class="w" id="wQb" d="M335 185H480"/>
+<path class="w" id="wX1" d="M400 75V140H205V165H230"/><path class="w" id="wX2" d="M420 185V122H195V95H230"/>
+<text x="5" y="59">START (S̄)</text><text x="5" y="209">STOP (R̄)</text><text x="440" y="65">Q = RUN</text><text x="440" y="175">Q̄</text>
+<circle class="led" id="led" cx="560" cy="75" r="10"/>
+<text x="300" y="252" id="gt">Gated clock = CLK AND RUN</text></svg>
+<div class="btns"><button class="btn" id="lS">Start</button><button class="btn alt" id="lP">Stop</button><button class="btn alt" id="lR">Reset</button></div></div>
+<div><p>Two cross-coupled NAND gates form an SR latch. Each output feeds the other gate, so the latch remembers its last command after the button is released.</p><p>Start (active low) sets RUN to 1 and lets clock pulses through. Stop sets RUN to 0 and the count freezes. Reset clears the counters and the latch.</p><p class="mono" id="lt"></p></div></div></section>
+
+<section id="seg" class="rv"><h2>Seven-segment display</h2>
+<div class="two"><div class="glass" style="--dw:130px"><div class="disp" id="sg"></div></div>
+<div><p>Pick a digit. The CD4511 decodes the four BCD inputs into outputs a–g that light the matching LEDs.</p><div class="dgrow" id="dr"></div><p>BCD input (D C B A): <span class="mono" id="bc"></span></p><div class="seg7" id="so"></div></div></div></section>
+
+<section id="proto" class="rv"><h2>Prototype and hardware</h2><p>Conceptual layout of the breadboard build: five ICs, four displays, push buttons, passives and a 5 V supply. This is a 2D/3D conceptual visualization, not a photograph of the real prototype.</p>
+<div class="proto glass"><svg viewBox="0 0 640 250" width="100%"><rect x="5" y="5" width="630" height="240" rx="12" fill="#e9e6dc" opacity=".92"/><rect x="5" y="118" width="630" height="14" fill="#cfcabb"/>
+<g font-size="11"><rect x="30" y="30" width="80" height="34" rx="3" fill="#222"/><text x="45" y="52" style="fill:#fff">NE555</text><rect x="130" y="30" width="80" height="34" rx="3" fill="#222"/><text x="140" y="52" style="fill:#fff">CD4518</text><rect x="230" y="30" width="80" height="34" rx="3" fill="#222"/><text x="240" y="52" style="fill:#fff">CD4081</text><rect x="330" y="30" width="80" height="34" rx="3" fill="#222"/><text x="340" y="52" style="fill:#fff">CD4011</text><rect x="430" y="30" width="80" height="34" rx="3" fill="#222"/><text x="440" y="52" style="fill:#fff">CD4511</text></g>
+<g fill="#111"><rect x="60" y="150" width="70" height="70" rx="4"/><rect x="150" y="150" width="70" height="70" rx="4"/><rect x="270" y="150" width="70" height="70" rx="4"/><rect x="360" y="150" width="70" height="70" rx="4"/></g><g fill="#0ef" font-size="46" font-family="monospace"><text x="72" y="204">0</text><text x="162" y="204">0</text><text x="282" y="204">0</text><text x="372" y="204">0</text></g>
+<g fill="none" stroke-width="3"><path d="M70 64V100H500V64" stroke="#e33"/><path d="M170 64V110H260" stroke="#27c"/><path d="M370 64V140" stroke="#3a3"/><path d="M270 64V96H120" stroke="#e90"/></g>
+<g fill="#c9a97a"><rect x="530" y="40" width="40" height="10" rx="5"/><rect x="530" y="60" width="40" height="10" rx="5"/></g><g fill="#38c"><circle cx="560" cy="160" r="14"/><circle cx="560" cy="200" r="14"/><circle cx="520" cy="180" r="14"/></g><text x="505" y="232" style="fill:#333">Start Stop Reset</text><text x="515" y="100" style="fill:#c00">+5 V</text></svg></div></section>
+
+<section id="tests" class="rv"><h2>Testing and results</h2><p>These checks run live against the same counter logic used by the stopwatch above. They are software checks of the logic model, not laboratory measurements.</p><button class="btn" id="rt">Run all tests</button><div class="tests" id="tg"></div></section>
+
+<section id="team" class="rv"><h2>Project team</h2><div class="team"><div class="glass"><h3>Submitted by</h3><p>Abhay Singh Tomar – BTMC26O1003<br>Abhinav Kumar Dwivedi – BTMC26O1004</p></div><div class="glass"><h3>Submitted to</h3><p>Dr. Dheeraj Kumar Dixit</p></div><div class="glass"><h3>Project</h3><p>Micro Project – Digital Stopwatch Using Logic Gates<br>Milestone 2 – Core Module Implementation &amp; Prototyping</p></div></div></section>
+</main>
+<footer><div class="cols"><div><h3>Digital Stopwatch Using Logic Gates</h3><p>A micro project in digital electronics.</p></div><div><h3>Technology</h3><p>HTML5, CSS3, JavaScript, Three.js</p></div><div><h3>Team</h3><p>Abhay Singh Tomar<br>Abhinav Kumar Dwivedi</p></div><div><h3>Navigate</h3><a href="#stopwatch">Stopwatch</a><a href="#how">How it works</a><a href="#tests">Testing</a></div></div><p style="text-align:center;margin:30px auto 0;font-size:.85rem">© 2026 Digital Stopwatch Using Logic Gates. All rights reserved.</p></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',T0=performance.now();
+/* ---- segment helpers ---- */
+const MAP=['abcdef','bc','abdeg','abcdg','bcfg','acdfg','acdefg','abc','abcdefg','abcdfg'];
+const PG={a:"12,4 48,4 42,10 18,10",b:"50,6 50,46 44,44 44,12",c:"50,54 50,94 44,88 44,56",d:"12,96 48,96 42,90 18,90",e:"10,54 10,94 16,88 16,56",f:"10,6 10,46 16,44 16,12",g:"12,50 18,46 42,46 48,50 42,54 18,54"};
+function dig(){const s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 60 100');s.setAttribute('class','dg');for(const k in PG){const p=document.createElementNS(NS,'polygon');p.setAttribute('points',PG[k]);p.dataset.s=k;s.appendChild(p)}return s}
+function setD(s,n){const on=MAP[n]||'';s.querySelectorAll('polygon').forEach(p=>p.classList.toggle('on',on.includes(p.dataset.s)))}
+function mkDisp(el,colon=true){el.classList.add('disp');const d=[];for(let i=0;i<5;i++){if(i==2){const c=document.createElement('div');c.className='colon';c.innerHTML='<i></i><i></i>';el.appendChild(c);continue}const s=dig();el.appendChild(s);d.push(s)}let last=[];return{set(m,s){[m/10|0,m%10,s/10|0,s%10].forEach((x,i)=>{if(last[i]!==x){setD(d[i],x);d[i].classList.remove('flip');void d[i].getBoundingClientRect();d[i].classList.add('flip');last[i]=x}})}}}
+/* ---- counter model (shared by stopwatch and tests) ---- */
+function Model(){return{m:0,s:0,run:false,tick(){if(!this.run)return 0;if(++this.s>59){this.s=0;if(++this.m>59)this.m=0;return 2}return 1},start(){this.run=true},stop(){this.run=false},reset(){this.m=this.s=0;this.run=false}}}
+const M=Model();let timer=null;
+const disp=mkDisp($('#md')),hd=mkDisp($('#hd'));
+function start(){if(timer)return;M.start();timer=setInterval(()=>{M.tick();sync()},1000);sync()}
+function stop(){clearInterval(timer);timer=null;M.stop();sync()}
+function reset(){stop();M.reset();sync()}
+let tex=null,drawTex=()=>{};
+function sync(){disp.set(M.m,M.s);hd.set(M.m,M.s);drawTex();
+$('#st').textContent=M.run?'RUNNING':(M.m||M.s?'PAUSED':'READY');
+$('#bS').textContent=(!M.run&&(M.m||M.s))?'Resume':'Start';$('#lS').textContent=$('#bS').textContent;
+const q=$('#wQ'),qb=$('#wQb'),x1=$('#wX1'),x2=$('#wX2');
+q.classList.toggle('hi',M.run);x1.classList.toggle('hi',M.run);qb.classList.toggle('hi',!M.run);x2.classList.toggle('hi',!M.run);
+$('#led').classList.toggle('on',M.run);
+$('#lt').textContent=M.run?'State: RUN = 1 → clock reaches the counters.':'State: RUN = 0 → clock is blocked, count is held.';
+$('#gt').textContent='Gated clock = CLK AND RUN ('+(M.run?'passing':'blocked')+')'}
+function flash(id){const e=$(id);e.classList.add('fl');setTimeout(()=>e.classList.remove('fl'),500)}
+$('#bS').onclick=$('#lS').onclick=()=>{flash('#wS');start()};
+$('#bP').onclick=$('#lP').onclick=()=>{flash('#wR');stop()};
+$('#bR').onclick=$('#lR').onclick=reset;
+/* ---- architecture ---- */
+const MODS=[['555 Timer','Generates a steady clock of about one pulse per second.'],['Control gate','NAND latch plus gating: passes clock pulses only while RUN is 1.'],['Seconds counter','Units counts 0–9, tens counts 0–5. At 60 it clears and sends a carry.'],['Minutes counter','Counts the carry pulses from the seconds stage, 00–59.'],['Display drivers','CD4511 converts each BCD digit into seven segment signals.'],['7-segment display','Four common-cathode displays show the time as MM:SS.']];
+let mi=0,auto=true;const mw=$('#mods');
+MODS.forEach((m,i)=>{if(i){const w=document.createElement('div');w.className='wire';mw.appendChild(w)}const b=document.createElement('button');b.className='mod';b.innerHTML='<b>'+m[0]+'</b>';b.onclick=()=>{auto=false;pick(i)};b.onmouseenter=()=>{auto=false;pick(i)};mw.appendChild(b)});
+function pick(i){mi=i;mw.querySelectorAll('.mod').forEach((b,j)=>b.classList.toggle('on',j==i));mw.querySelectorAll('.wire').forEach((w,j)=>w.classList.toggle('flow',j==i));$('#mdet').innerHTML='<h3>'+MODS[i][0]+'</h3><p style="margin:0">'+MODS[i][1]+(i<5?' Signal then moves on to the <b>'+MODS[i+1][0]+'</b>.':'')+'</p>'}
+pick(0);setInterval(()=>{if(auto)pick((mi+1)%6)},2600);
+/* ---- components ---- */
+const CP=[['NE555 Timer','ic','Clock source','Runs in astable mode. R1, R2 and C set the frequency. About 1 Hz here.'],['CD4518 Dual BCD Counter','ic','Seconds and minutes counting','Counts in 8-4-2-1 BCD, 0000 to 1001, then wraps. Live seconds-units BCD: <span class="mono" id="bl">0000</span>'],['CD4081 AND Gate','ic','Rollover detection','Detects the tens value 6 (0110) so the tens counter can be cleared at 60.'],['CD4011 NAND Gate','ic','Start/Stop latch','Cross-coupled NANDs form the latch and also gate the clock.'],['CD4511 BCD-to-7-seg','ic','Display driver','Turns BCD input D C B A into segment outputs a–g.'],['7-Segment Display ×4','dg','MM:SS output','Common-cathode LED digits. A segment lights when its driver output is high.'],['R, C, switches, 5 V','res','Support parts','Resistors limit current, capacitors set timing, push buttons give Start, Stop and Reset, and 5 V powers the logic.']];
+const cg=$('#cg');CP.forEach((c,i)=>{const b=document.createElement('button');b.className='card';b.innerHTML='<div class="art">'+(c[1]=='ic'?'<div class="ic">'+c[0].split(' ')[0]+'</div>':c[1]=='res'?'<div class="res"></div>':'')+'</div><b style="font-size:.88rem">'+c[0]+'</b>';if(c[1]=='dg'){const s=dig();s.style.width='40px';setD(s,8);b.querySelector('.art').appendChild(s)}
+b.onclick=()=>selC(i);b.onpointermove=e=>{const r=b.getBoundingClientRect();b.style.transform='perspective(500px) rotateY('+((e.clientX-r.left)/r.width-.5)*24+'deg) rotateX('+(-((e.clientY-r.top)/r.height-.5))*24+'deg)'};b.onpointerleave=()=>b.style.transform='';cg.appendChild(b)});
+function selC(i){cg.querySelectorAll('.card').forEach((b,j)=>b.classList.toggle('on',i==j));$('#cdet').innerHTML='<h3>'+CP[i][0]+'</h3><p><b>Purpose:</b> '+CP[i][2]+'</p><p style="margin:0"><b>How it works:</b> '+CP[i][3]+'</p>';syncB()}
+function syncB(){const e=$('#bl');if(e)e.textContent=(M.s%10).toString(2).padStart(4,'0')}
+setInterval(syncB,250);selC(0);
+/* ---- clock / waveform ---- */
+const R1=1e3,R2=68e3,C=10e-6,th=.693*(R1+R2)*C,tl=.693*R2*C,TT=th+tl;
+$('#fq').textContent=(1.44/((R1+2*R2)*C)).toFixed(2);
+const wf=$('#wf'),cx=wf.getContext('2d');let wfOn=false;
+const vc=t=>{const u=t%TT;return u<th?1-(2/3)*Math.exp(-u/((R1+R2)*C)):(2/3)*Math.exp(-(u-th)/(R2*C))};
+function drawWf(now){const W=800,sp=200;cx.clearRect(0,0,W,260);cx.strokeStyle='#234';cx.setLineDash([4,4]);[1/3,2/3].forEach(v=>{const y=125-v*105;cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()});cx.setLineDash([]);cx.fillStyle='#8fa3c0';cx.font='11px monospace';cx.fillText('2/3 Vcc',4,50);cx.fillText('1/3 Vcc',4,90);
+const t0=now/1000-W/sp;cx.lineWidth=2;cx.strokeStyle='#00e5ff';cx.beginPath();for(let i=0;i<=W;i+=2){const y=125-vc(t0+i/sp)*105;i?cx.lineTo(i,y):cx.moveTo(i,y)}cx.stroke();
+cx.strokeStyle='#2979ff';cx.beginPath();for(let i=0;i<=W;i+=2){const t=t0+i/sp,y=(t%TT)<th?160:230;i?cx.lineTo(i,y):cx.moveTo(i,y)}cx.stroke();
+$('#wst').textContent=((now/1000)%TT<th)?'Now: charging through R1 + R2, output HIGH':'Now: discharging through R2, output LOW'}
+new IntersectionObserver(e=>wfOn=e[0].isIntersecting).observe(wf);
+/* ---- counter demo ---- */
+const cd=mkDisp($('#cd')),CM=Model();CM.run=true;let ca=null,ct;cd.set(0,0);
+function cstep(){const r=CM.tick();cd.set(CM.m,CM.s);const c=$('#carry');if(r==2){c.classList.add('on');clearTimeout(ct);ct=setTimeout(()=>c.classList.remove('on'),900);$('#clog').textContent=CM.m?'Seconds 59→00, minutes +1':'Rollover 59:59→00:00'}else $('#clog').textContent='Units '+(CM.s%10)+(CM.s%10?'':' (wrapped to 0, tens +1)')}
+$('#c1').onclick=cstep;$('#c2').onclick=()=>{CM.m=0;CM.s=58;cd.set(0,58)};$('#c3').onclick=()=>{CM.m=59;CM.s=58;cd.set(59,58)};
+$('#c4').onclick=e=>{if(ca){clearInterval(ca);ca=null;e.target.textContent='Auto run'}else{ca=setInterval(cstep,600);e.target.textContent='Stop auto'}};
+/* ---- 7-seg explorer ---- */
+const sg=mkDisp($('#sg'));$('#sg').querySelectorAll('.dg,.colon').forEach((e,i)=>{if(i!=0&&i!=1)e.style.display='none'});
+const sgd=$('#sg').querySelectorAll('.dg');
+function showD(n){sgd.forEach(s=>setD(s,n));sgd[1].style.display='none';
+document.querySelectorAll('.dgb').forEach((b,i)=>b.classList.toggle('on',i==n));$('#bc').textContent=n.toString(2).padStart(4,'0');$('#so').innerHTML='abcdefg'.split('').map(k=>'<span class="'+(MAP[n].includes(k)?'h':'')+'">'+k+'='+(MAP[n].includes(k)?1:0)+'</span>').join('')}
+for(let i=0;i<10;i++){const b=document.createElement('button');b.className='dgb';b.textContent=i;b.onclick=()=>showD(i);$('#dr').appendChild(b)}showD(8);
+/* ---- tests ---- */
+const TS=[['Clock output','One pulse per second',()=>[Math.abs(TT-1)<.1,'Computed period '+TT.toFixed(2)+' s']],
+['Seconds counting','00–59',()=>{const m=Model();m.start();for(let i=1;i<=59;i++){m.tick();if(m.s!=i||m.m)return[false,'Miscount']}return[true,'Reached 00:59']}],
+['Minute carry','00:59 → 01:00',()=>{const m=Model();m.start();m.s=59;m.tick();return[m.m==1&&m.s==0,'Now '+m.m+':'+m.s]}],
+['Rollover','59:59 → 00:00',()=>{const m=Model();m.start();m.m=59;m.s=59;m.tick();return[!m.m&&!m.s,'Wrapped to zero']}],
+['Stop','Counting freezes',()=>{const m=Model();m.start();m.tick();m.stop();m.tick();m.tick();return[m.s==1,'Held at 1 s']}],
+['Start','Counting resumes',()=>{const m=Model();m.start();m.tick();m.stop();m.start();m.tick();return[m.s==2,'Resumed from 1 to 2']}],
+['Reset','Returns to 00:00',()=>{const m=Model();m.start();m.m=5;m.s=5;m.reset();return[!m.m&&!m.s&&!m.run,'Cleared']}],
+['Display','Digits 0–9',()=>{const n=[6,2,5,5,4,5,6,3,7,6];return[MAP.every((s,i)=>s.length==n[i]),'All 10 patterns match']}]];
+const tg=$('#tg');TS.forEach(t=>{const d=document.createElement('div');d.className='t';d.innerHTML='<div class="k"></div><div><b>'+t[0]+'</b><small>'+t[1]+'</small><small class="r">Not run yet</small></div>';tg.appendChild(d)});
+$('#rt').onclick=()=>{[...tg.children].forEach((d,i)=>{d.className='t';d.querySelector('.k').textContent='';setTimeout(()=>{const[ok,msg]=TS[i][2]();d.classList.add(ok?'ok':'no');d.querySelector('.k').textContent=ok?'✓':'✗';d.querySelector('.r').textContent=msg},300*(i+1))})};
+/* ---- ui ---- */
+$('#mb').onclick=()=>$('#nv').classList.toggle('open');document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>$('#nv').classList.remove('open'));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in')}}),{threshold:.08});document.querySelectorAll('.rv').forEach(e=>io.observe(e));
+const hide=()=>$('#ld').classList.add('x');addEventListener('load',()=>setTimeout(hide,1100));setTimeout(hide,4000);
+sync();
+/* ---- three.js ---- */
+let render=null;
+try{
+const cv=$('#gl'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,100);cam.position.z=8;
+sc.add(new THREE.AmbientLight(0x4466aa,.9));const l1=new THREE.PointLight(0x00e5ff,1.6,30);l1.position.set(3,3,5);sc.add(l1);const l2=new THREE.PointLight(0x2979ff,1.2,30);l2.position.set(-5,-2,3);sc.add(l2);
+// board texture
+const bc=document.createElement('canvas');bc.width=bc.height=512;const bx=bc.getContext('2d');bx.fillStyle='#04101f';bx.fillRect(0,0,512,512);bx.strokeStyle='#00b8d4';bx.fillStyle='#00e5ff';bx.lineWidth=2;let sd=7;const rn=()=>(sd=(sd*9301+49297)%233280)/233280;
+for(let i=0;i<46;i++){let x=rn()*512|0,y=rn()*512|0;bx.beginPath();bx.moveTo(x,y);for(let k=0;k<3;k++){if(k%2)y+=(rn()-.5)*200|0;else x+=(rn()-.5)*200|0;bx.lineTo(x,y)}bx.stroke();bx.beginPath();bx.arc(x,y,4,0,7);bx.fill()}
+const bt=new THREE.CanvasTexture(bc),bm=new THREE.MeshBasicMaterial({map:bt,transparent:true,opacity:0}),board=new THREE.Mesh(new THREE.PlaneGeometry(16,16),bm);board.position.z=-4;sc.add(board);
+// stopwatch
+const g=new THREE.Group();sc.add(g);const met=new THREE.MeshStandardMaterial({color:0x9aa7b8,metalness:.9,roughness:.25});
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.7,.7,48),met);body.rotation.x=Math.PI/2;g.add(body);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.7,.09,12,48),new THREE.MeshStandardMaterial({color:0x00e5ff,emissive:0x006688,metalness:.6,roughness:.3}));ring.position.z=.36;g.add(ring);
+const tc=document.createElement('canvas');tc.width=320;tc.height=130;const tx=tc.getContext('2d');tex=new THREE.CanvasTexture(tc);
+drawTex=()=>{tx.fillStyle='#02080f';tx.fillRect(0,0,320,130);tx.shadowColor='#00e5ff';tx.shadowBlur=16;tx.fillStyle='#00e5ff';tx.font='bold 84px Consolas,monospace';tx.textAlign='center';tx.textBaseline='middle';tx.fillText(String(M.m).padStart(2,'0')+':'+String(M.s).padStart(2,'0'),160,68);tex.needsUpdate=true};drawTex();
+const scr=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.97),new THREE.MeshBasicMaterial({map:tex}));scr.position.z=.37;g.add(scr);
+const bt1=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.5,20),met);bt1.position.y=2.05;g.add(bt1);
+[-1,1].forEach(s=>{const b=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.4,16),met);b.position.set(s*1.3,1.4,0);b.rotation.z=-s*.8;g.add(b)});
+// chips
+const chips=[],cm=new THREE.MeshStandardMaterial({color:0x151a22,metalness:.4,roughness:.5}),pm=new THREE.MeshStandardMaterial({color:0xb8c2cf,metalness:.9,roughness:.3}),cg2=new THREE.BoxGeometry(.9,.22,.45),pg=new THREE.BoxGeometry(.8,.04,.6);
+for(let i=0;i<8;i++){const c=new THREE.Group();c.add(new THREE.Mesh(cg2,cm));c.add(new THREE.Mesh(pg,pm));const a=i/8*Math.PI*2;c.userData={a,r:3.8+(i%3)*.7,y:(i%4-1.5)*1.3,s:.1+.04*i};sc.add(c);chips.push(c)}
+// particles
+const pa=new Float32Array(240*3);for(let i=0;i<pa.length;i++)pa[i]=(Math.random()-.5)*16;const pgm=new THREE.BufferGeometry();pgm.setAttribute('position',new THREE.BufferAttribute(pa,3));const pts=new THREE.Points(pgm,new THREE.PointsMaterial({color:0x66e8ff,size:.04}));sc.add(pts);
+// signals
+const sig=[];for(let i=0;i<7;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.07,8,8),new THREE.MeshBasicMaterial({color:0x00e5ff}));m.userData={y:-6+i*2,o:i*1.7};m.position.z=-3.9;sc.add(m);sig.push(m)}
+let mx=0,my=0,sy=0;addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});addEventListener('scroll',()=>sy=scrollY,{passive:true});
+let wide=true;function rs(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();wide=innerWidth>900}rs();addEventListener('resize',rs);
+render=now=>{const t=(now-T0)/1000,p=Math.min(Math.max((t-1.2)/2.4,0),1),e=1-Math.pow(1-p,3),s=Math.min(sy/innerHeight,1.6);
+g.scale.setScalar(.01+e*(wide?1:.78));g.rotation.y=(1-e)*Math.PI*2+mx*.6+Math.sin(t*.5)*.1;g.rotation.x=my*.3;
+g.position.set(wide?2.9:0,(wide?0:-1.3)+Math.sin(t*1.2)*.12+s*2.2,0);
+bm.opacity=.15+e*.45;board.rotation.z=t*.03+s*.3;cam.position.y=-s*.8;cam.position.z=8+s*2;
+chips.forEach(c=>{const d=c.userData,a=d.a+t*d.s;c.position.set(Math.cos(a)*d.r+(wide?1.5:0),d.y+Math.sin(t+d.a)*.2,Math.sin(a)*d.r*.5-1.5);c.rotation.set(t*.3+d.a,t*.4,0)});
+sig.forEach(m=>{m.position.x=((t*2+m.userData.o)%16)-8;m.position.y=m.userData.y});pts.rotation.y=t*.02;
+cv.style.opacity=Math.max(.3,1-s*.7);R.render(sc,cam)};
+}catch(err){document.body.classList.add('nogl');render=null}
+function loop(now){if(render&&!document.hidden)render(now);if(wfOn)drawWf(Date.now()-Date.UTC(2026,0,1)+5000);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script></body></html>
